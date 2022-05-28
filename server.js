@@ -16,7 +16,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection',socket =>{
     console.log('New WS Connection...');
 
-    socket.emit('message','Welcome to ChatSpace!')
+    socket.emit('message','Welcome to ChatSpace!'); // emits to a single client
+
+    //Broadcast when a user connects. Broadcast to all clients except the one who just connected
+    socket.broadcast.emit();
+
+    // io.emit();  -> to everyone
 });
 
 
