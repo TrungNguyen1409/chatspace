@@ -12,5 +12,5 @@ init node + changes in package.js:
     "dev": "nodemon server"
   },
   
-  
+  HOW TO RUN THE SERVER ON CONSOLE: npm run dev
   
