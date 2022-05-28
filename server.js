@@ -3,11 +3,14 @@ const path = require('path');
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
+const formatMessage = require('./utils/messages');
 
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+
+const botName = 'ChatSpace Bot';
 
 // set static folder
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,15 +20,15 @@ io.on('connection',socket =>{
     console.log('New WS Connection...');
 
     //Welcome new user
-    socket.emit('message','Welcome to ChatSpace!'); // emits to a single client
+    socket.emit('message', formatMessage(botName,"Welcome to ChatSpace!").text);    // emits to a single client
 
     //Broadcast when a user connects. Broadcast to all clients except the one who just connected
-    socket.broadcast.emit('message', 'An user has joined the chat');
+    socket.broadcast.emit('message', formatMessage(botName,'An user has joined the chat').text);
 
     // io.emit();  -> to everyone
     // runs when client disconnects
     socket.on('disconnect', () =>{
-        io.emit('message','An user has left the chat');
+        io.emit('message',formatMessage('USER',msg));
     });
 
     // listen for chatMessage
