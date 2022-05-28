@@ -15,6 +15,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Run when a client connect
 io.on('connection',socket =>{
     console.log('New WS Connection...');
+
+    socket.emit('message','Welcome to ChatSpace!')
 });
 
 
