@@ -44,8 +44,10 @@ io.on('connection',socket =>{
     // listen for chatMessage
 
     socket.on('chatMessage', msg =>{
+
+        const user = getCurrentUser(socket.id);
         console.log(msg);
-        io.emit('message', formatMessage('USER',msg));
+        io.to(user.room).emit('message', formatMessage(user.username,msg));
     });
 
      // runs when client disconnects
