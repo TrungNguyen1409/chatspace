@@ -1,6 +1,8 @@
 // Code for client
 const chatForm = document.getElementById('chat-form');
 const chatMessages = document.querySelector('.chat-messages');
+const roomName = document.getElementById('room-name');
+const userName = document.getElementById('users');
 
 // get username and room from URL
 const {username,room} = Qs.parse(location.search,{
@@ -13,6 +15,13 @@ const socket = io();
 
 //Join chatroom
 socket.emit('joinRoom',{username, room});
+
+//get room and users
+
+socket.on('roomUsers', ({room,users})=>{
+    outputRoomName(room);
+    outputUsers(users);
+});
 
 // message from server
 socket.on('message', message =>{
@@ -31,7 +40,7 @@ chatForm.addEventListener('submit', (e) =>{
 
     //extract text message 
     const msg = e.target.elements.msg.value; // user input in the UI
-
+    console.log(msg);
     // emit message to server
     socket.emit('chatMessage', msg);
 
@@ -52,5 +61,4 @@ function outputMessage(message){
     </p>`;
     document.querySelector('.chat-messages').appendChild(div);
 }
-
 

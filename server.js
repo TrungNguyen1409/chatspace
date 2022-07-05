@@ -4,6 +4,8 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const formatMessage = require('./utils/messages');
+const {userJoin, getCurrentUser, userLeave, getRoomUsers} = require('./utils/user');
+
 
 
 const app = express();
@@ -19,13 +21,25 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection',socket =>{
 
     socket.on('joinRoom', ({username,room})=>{
-        console.log('New WS Connection...');
+
+
+        const user = userJoin(socket.id, username, room);
+        socket.join(user.room);
+
         console.log({username,room}.username);
         //Welcome new user
         socket.emit('message', formatMessage(botName, `Welcome ${username} to ${room}`));    // emits to a single client
     
         //Broadcast when a user connects. Broadcast to all clients except the one who just connected
-        socket.broadcast.emit('message', formatMessage(botName,`${username} has joined the chat`));
+        socket.broadcast
+            .to(user.room) // broadcast to a specific room
+            .emit('message', formatMessage(botName,`${username} has joined the chat`));
+
+        // Send users and room info    
+        io.to(user.room).emit('roomUsers', {
+            room: user.room,
+            users: getRoomUsers(user.room)
+        });
     });
 
     
@@ -36,13 +50,29 @@ io.on('connection',socket =>{
     // listen for chatMessage
 
     socket.on('chatMessage', msg =>{
+
+        const user = getCurrentUser(socket.id);
         console.log(msg);
-        io.emit('message', formatMessage('USER',msg));
+        io.to(user.room).emit('message', formatMessage(user.username,msg));
     });
 
      // runs when client disconnects
      socket.on('disconnect', () =>{
-        io.emit('message','An user has joined the chat');
+
+        const user = userLeave(socket.id);
+
+        if(user){
+            io.to(user.room).emit(
+                'message',
+                formatMessage(botName, `${user.username} has left the chat`));
+        }
+
+        // Send users and room info    
+        io.to(user.room).emit('roomUsers', {
+            room: user.room,
+            users: getRoomUsers(user.room)
+        });
+        
     });
 });
 
@@ -51,3 +81,6 @@ io.on('connection',socket =>{
 const PORT = 3000 || process.env.PORT;
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+// one big question: how to differentiate between different rooms
